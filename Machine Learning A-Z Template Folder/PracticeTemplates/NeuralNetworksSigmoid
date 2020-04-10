@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Mar 25 13:35:30 2020
+
+@author: nancyscarlet
+"""
+import numpy as np
+#X-4*3  y-4*1  
+# X(layer0)----s1----layer1----s2----layer2(output)
+X = np.array([[0,0,1],[0,1,1],[1,0,1],[1,1,1]])
+y = np.array([[0,1,1,0]]).T
+alpha1,hidden_dim = (0.5,4)
+alphas = [0.001,0.01,0.1,1,10,100,1000]
+hiddenSize=32
+
+def derivate_sigmoid(a):
+    return a*(1-a)
+
+def sigmoid(a):
+    output = 1/(1+np.exp(-a))
+    return output
+
+for alpha in alphas:
+    print("\n Training with Alpha:")
+    print(alpha)
+    np.random.seed(1)
+
+    synapse1 = 2*np.random.random((3,hiddenSize))-1
+    synapse2 = 2*np.random.random((hiddenSize,1))-1
+
+    for j in range(6000):
+        #feed forward once
+        layer0 = X
+        layer1 = sigmoid(np.dot(layer0,synapse1))
+        layer2 = sigmoid(np.dot(layer1,synapse2))
+ 
+        #Calculating the error by calculating predicted 
+        #minus actual output values
+        layer2error = layer2-y
+        
+        if(j%1000==0):
+            print("Error after "+str(j)+"iterations: " + str(np.mean(np.abs(layer2error))))
+
+        #Deltas diff of outputs multiplied by
+        # derivative of layer2 which is slope(layer2)
+        layer2Delta = layer2error*derivate_sigmoid(layer2)
+
+        layer1error = layer2Delta.dot(synapse2.T)
+
+        layer1Delta = layer1error*derivate_sigmoid(layer1)
+
+        #Adjusting weights of layers
+        synapse2 -= alpha*(layer1.T.dot(layer2Delta))
+        synapse1 -= alpha*(layer0.T.dot(layer1Delta))
